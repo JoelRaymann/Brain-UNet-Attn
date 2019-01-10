@@ -35,10 +35,10 @@ y = np.asarray(yTrain[80])
 nw, nh, nz = X.shape
 
 # Hyperparameter settings
-batch_size = 5
+batch_size = 10
 lr = 0.0001
 beta1 = 0.9
-n_epoch = 5
+n_epoch = 50
 printFreq = 10
 
 # Define Model Here
@@ -63,7 +63,7 @@ for epoch in range(0, n_epoch):
         bImages = bImages.transpose((0, 2, 3, 1, 4))
         bImages.shape = (batch_size, nw, nh, nz)
 
-        model.fit(x = bImages, y = labels, batch_size = batch_size, verbose = 0, shuffle = False, callbacks=[train_history])
+        model.fit(x = bImages, y = labels, verbose = 0, shuffle = True, callbacks=[train_history])
         n_batch += 1
         
         if n_batch % printFreq == 0:
