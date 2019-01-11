@@ -15,6 +15,8 @@ train/
 # Model Folders
 unet.h5
 unet.json
+unet_standard.json
+unet_standard.h5
 
 # Misc. Folders
 checkpoint/

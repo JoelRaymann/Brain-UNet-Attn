@@ -26,7 +26,7 @@ n_epoch = 5
 printFreq = 10
 
 # Load JSON Model
-model = LoadModelJSON("unet_standard")
+model = LoadModelJSON("unet_attention")
 
 # Compile model
 model.compile(optimizer = Adam(lr = lr, beta_1 = beta1), loss = jaccard_distance_loss, metrics = ['accuracy'])

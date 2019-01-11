@@ -44,7 +44,7 @@ if __name__ == "__main__":
     printFreq = 10
 
     # Define Model Here
-    model = UNet(shape = (batch_size, nw, nh, nz))
+    model = UNetWithAttention(shape = (batch_size, nw, nh, nz))
 
     # Compile Model
     model.compile(optimizer = Adam(lr = lr, beta_1 = beta1), loss = dice_coef_loss, metrics = [dice_coef])
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     workers = 0)
 
     # Save the model into json
-    SaveModelJSON(model, "unet_standard")
+    SaveModelJSON(model, "unet_attention")
     print("[+] Trained and saved. Please run testing script to load and test")
 
     if(int(input("[+] To test press 1 : ")) == 1):
