@@ -50,34 +50,31 @@ def UNet(shape, reuse = False, n_out = 1):
         
         conv4 = Conv2D(512, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(pool3)
         conv4 = Conv2D(512, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv4)
-        conv4 = Dropout(0.5)(conv4)
         pool4 = MaxPooling2D(pool_size = (2, 2))(conv4)
         
         conv5 = Conv2D(1024, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(pool4)
         conv5 = Conv2D(1024, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv5)
-        conv5 = Dropout(0.5)(conv5)
         
         # Decoder ;_;
         up6 = Deconv2D(512, 3, strides = (2, 2), padding = "same")(conv5)
-        merge6 = concatenate([conv4, up6], axis = -1)
+        merge6 = concatenate([up6, conv4], axis = 3)
         conv6 = Conv2D(512, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(merge6)
         conv6 = Conv2D(512, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv6)
         
         up7 = Deconv2D(256, 3, strides = (2, 2), padding = "same")(conv6)
-        merge7 = concatenate([conv3, up7], axis = -1)
+        merge7 = concatenate([up7, conv3], axis = 3)
         conv7 = Conv2D(256, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(merge7)
         conv7 = Conv2D(256, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv7)
         
         up8 = Deconv2D(128, 3, strides = (2, 2), padding = "same")(conv7)
-        merge8 = concatenate([conv2, up8], axis = -1)
+        merge8 = concatenate([up8, conv2], axis = 3)
         conv8 = Conv2D(128, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(merge8)
         conv8 = Conv2D(128, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv8)
         
         up9 = Deconv2D(64, 3, strides = (2, 2), padding = "same")(conv8)
-        merge9 = concatenate([conv1, up9], axis = -1)
+        merge9 = concatenate([up9, conv1], axis = 3)
         conv9 = Conv2D(64, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(merge9)
         conv9 = Conv2D(64, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv9)
-        conv9 = Conv2D(2, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv9)
 
         conv10 = Conv2D(n_out, 1, activation = "sigmoid", padding = "same", kernel_initializer = "he_normal")(conv9)
         
@@ -110,39 +107,35 @@ def UNetWithAttention(shape, reuse = False, n_out = 1):
         
         conv4 = Conv2D(512, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(pool3)
         conv4 = Conv2D(512, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv4)
-        conv4 = Dropout(0.5)(conv4)
         pool4 = MaxPooling2D(pool_size = (2, 2))(conv4)
         
         conv5 = Conv2D(1024, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(pool4)
         conv5 = Conv2D(1024, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv5)
-        conv5 = Dropout(0.5)(conv5)
         
         # Decoder ;_;
         up6 = Deconv2D(512, 3, strides = (2, 2), padding = "same")(conv5)
         attn6 = AttentionBlock(up6, conv4, 512)
-        merge6 = concatenate([attn6, up6], axis = -1)
+        merge6 = concatenate([up6, attn6], axis = 3)
         conv6 = Conv2D(512, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(merge6)
         conv6 = Conv2D(512, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv6)
         
         up7 = Deconv2D(256, 3, strides = (2, 2), padding = "same")(conv6)
         attn7 = AttentionBlock(up7, conv3, 256)
-        merge7 = concatenate([attn7, up7], axis = -1)
+        merge7 = concatenate([up7, attn7], axis = 3)
         conv7 = Conv2D(256, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(merge7)
         conv7 = Conv2D(256, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv7)
         
         up8 = Deconv2D(128, 3, strides = (2, 2), padding = "same")(conv7)
         attn8 = AttentionBlock(up8, conv2, 128)
-        merge8 = concatenate([attn8, up8], axis = -1)
+        merge8 = concatenate([up8, attn8], axis = 3)
         conv8 = Conv2D(128, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(merge8)
         conv8 = Conv2D(128, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv8)
         
         up9 = Deconv2D(64, 3, strides = (2, 2), padding = "same")(conv8)
         attn9 = AttentionBlock(up9, conv1, 64)
-        merge9 = concatenate([attn9, up9], axis = -1)
+        merge9 = concatenate([up9, attn9], axis = 3)
         conv9 = Conv2D(64, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(merge9)
         conv9 = Conv2D(64, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv9)
-        conv9 = Conv2D(2, 3, activation = "relu", padding = "same", kernel_initializer = "he_normal")(conv9)
-
         conv10 = Conv2D(n_out, 1, activation = "sigmoid", padding = "same", kernel_initializer = "he_normal")(conv9)
         
         model = Model(inputs = inputs, outputs = conv10)

@@ -47,7 +47,7 @@ if __name__ == "__main__":
     model = UNetWithAttention(shape = (batch_size, nw, nh, nz))
 
     # Compile Model
-    model.compile(optimizer = Adam(lr = lr, beta_1 = beta1), loss = dice_coef_loss, metrics = [dice_coef])
+    model.compile(optimizer = Adam(lr = lr, beta_1 = beta1), loss = "binary_crossentropy", metrics = [dice_coef])
 
     # Setup DataGenerators
     trainGen = DataGenerator(XTrain, yTrain, batch_size = batch_size)

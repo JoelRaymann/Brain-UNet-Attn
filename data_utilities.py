@@ -5,6 +5,7 @@ import tensorlayer as tl
 from model_utilities import DistortImages
 from keras import backend as K
 from keras.utils import Sequence
+from random import shuffle
 
 class DataGenerator(Sequence):
 
@@ -27,3 +28,10 @@ class DataGenerator(Sequence):
         bImages = bImages.transpose((0, 2, 3, 1, 4))
         bImages.shape = (self.batch_size, self.nw, self.nh, self.nz)
         return bImages, bLabels
+
+    def on_epoch_end(self):
+        
+        indexList = list(range(self.X.shape[0]))
+        shuffle(indexList)
+        self.X = self.X[indexList, :, :, :]
+        self.y = self.y[indexList, :, :, :]

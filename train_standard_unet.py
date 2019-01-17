@@ -27,9 +27,9 @@ if __name__ == "__main__":
     # Set up data
     XTrain = dataset.X_train_input
     yTrain = dataset.X_train_target[:, :, :, np.newaxis]
-    XTest = dataset.X_dev_input
-    yTest = dataset.X_dev_target[:, :, :, np.newaxis]
-
+    XDev = dataset.X_dev_input
+    yDev = dataset.X_dev_target[:, :, :, np.newaxis]
+    
     yTrain = (yTrain > 0).astype(int)
     yTest = (yTest > 0).astype(int)
     X = np.asarray(XTrain[80])
@@ -37,17 +37,17 @@ if __name__ == "__main__":
     nw, nh, nz = X.shape
 
     # Hyperparameter settings
-    batch_size = 10
+    batch_size = 5
     lr = 0.0001
     beta1 = 0.9
-    n_epoch = 120
+    n_epoch = 5
     printFreq = 10
 
     # Define Model Here
     model = UNet(shape = (batch_size, nw, nh, nz))
 
     # Compile Model
-    model.compile(optimizer = Adam(lr = lr, beta_1 = beta1), loss = dice_coef_loss, metrics = [dice_coef])
+    model.compile(optimizer = Adam(lr = lr, beta_1 = beta1), loss = dice_coef, metrics = [dice_coef_loss])
 
     # Setup DataGenerators
     trainGen = DataGenerator(XTrain, yTrain, batch_size = batch_size)
