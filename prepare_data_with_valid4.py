@@ -75,9 +75,9 @@ index_HGG = list(range(0, len(survival_id_from_HGG)))
 # random.shuffle(index_HGG)
 
 if DATA_SIZE == 'all':
-    dev_index_HGG = index_HGG[-7:-4]
-    test_index_HGG = index_HGG[-4:]
-    tr_index_HGG = index_HGG[:-7]
+    dev_index_HGG = index_HGG[10:15]
+    test_index_HGG = index_HGG[0:2] + index_HGG[20:24]
+    tr_index_HGG = index_HGG[2:8] + index_HGG[15:20]
 elif DATA_SIZE == 'half':
     dev_index_HGG = index_HGG[21:28]  # DEBUG WITH SMALL DATA
     test_index_HGG = index_HGG[25:28]
@@ -290,6 +290,65 @@ X_train_input = np.asarray(X_train_input, dtype=np.float32)
 X_train_target = np.asarray(X_train_target)#, dtype=np.float32)
 print(X_train_input.shape)
 print(X_train_target.shape)
+
+
+# Aneesh -----------------------------------------------------------
+
+X_test_input = []
+X_test_target = []
+
+
+print("Preparing Testing Data")
+
+for i in survival_id_test_HGG:
+    all_3d_data = []
+    for j in data_types:
+        img_path = os.path.join(HGG_data_path, i, i + '_' + j + '.nii')
+        img = nib.load(img_path).get_data()
+        img1=np.zeros((240,240,153), np.float32)
+        X=np.zeros((240,240), np.float32)
+        for c in range(1, 153):
+            X=img[:, :, c]
+            X=imresize(X, (240, 240), mode='F')
+            img1[:, :, c]=X;
+        img1 = (img1 - data_types_mean_std_dict[j]['mean']) / data_types_mean_std_dict[j]['std']
+        img1 = img1.astype(np.float32)
+        all_3d_data.append(img1)
+
+    seg_path = os.path.join(HGG_data_path, i, i + 'OT.nii')
+    seg_img = nib.load(seg_path).get_data()
+    seg_img1=np.zeros((240,240,153), np.float32)
+    X=np.zeros((240,240), np.float32)
+    for c in range(1, 153):
+        X=seg_img[:, :, c]
+        X=imresize(X, (240, 240), mode='F')
+        seg_img1[:, :, c]=X;
+    seg_img1 = np.transpose(seg_img1, (1, 0, 2))
+
+
+    for j in range(all_3d_data[0].shape[2]):
+        combined_array = np.stack((all_3d_data[0][:, :, j], all_3d_data[1][:, :, j], all_3d_data[2][:, :, j], all_3d_data[3][:, :, j]), axis=2)
+        combined_array = np.transpose(combined_array, (1, 0, 2))#.tolist()
+        combined_array.astype(np.float32)
+        X_test_input.append(combined_array)
+
+        seg_2d = seg_img1[:, :, j]
+
+        seg_2d.astype(int)
+        X_test_target.append(seg_2d)
+    del all_3d_data
+    gc.collect()
+    print("finished {}".format(i))
+
+
+
+X_test_input = np.asarray(X_test_input, dtype=np.float32)
+X_test_target = np.asarray(X_test_target)#, dtype=np.float32)
+print(X_test_input.shape)
+print(X_test_target.shape)
+
+
+# lmao -------------------------------------------------------------
 
 # with open(save_dir + 'train_input.pickle', 'wb') as f:
 #     pickle.dump(X_train_input, f, protocol=4)
