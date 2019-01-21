@@ -6,6 +6,7 @@ import numpy as np
 from keras import backend as K
 from keras.models import Model, model_from_json
 
+
 def DistortImages(data):
     '''
     Function to augment the data with Tensorlayer
@@ -157,7 +158,7 @@ def SaveModelJSON(model: Model, modelName: str,save_dir = "") -> bool:
             print("\n [+] Model saved in disk")
             return True
     except FileExistsError:
-        logging.error(fe)
+        logging.error(FileExistsError)
         print("\n [-] Warning file already exists at path " + save_dir + modelName + ".json")
         choice = input("[\n+] Do you want to overwrite the file? ")
         choice = choice.lower()
@@ -201,7 +202,7 @@ def LoadModelJSON(modelName:str, load_dir = "") -> Model:
     import logging
 
     try:
-        if os.path.exist(load_dir + modelName + ".json"):
+        if os.path.exists(load_dir + modelName + ".json"):
             jsonFile = open(load_dir + modelName + ".json", "r")
             loadedModelJson = jsonFile.read()
             jsonFile.close()
@@ -214,7 +215,7 @@ def LoadModelJSON(modelName:str, load_dir = "") -> Model:
     except FileNotFoundError:
         choice = input("\n [+] File not found. Do you want to enter a new DIR (Y) or exit (n) ?")
         choice = choice.lower()
-        if(choice == 'y')
+        if(choice == 'y'):
             NewModelName = input("\n [+] Enter new model name: ")
             NewDIR = input("\n [+] Enter new path to load: ")
             print("Path selected : " +  NewDIR + NewModelName + ".json")
