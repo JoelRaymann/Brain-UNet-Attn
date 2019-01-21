@@ -1,22 +1,6 @@
-# Hidden cache folders
-__pycache__/
-.ipynb_checkpoints/
+# Folders
+data/
 .vscode/
 
-# Data Folders
-all/
-data/
-example/
-other files/
-sample/
-test/
-train/
-
-# Model Folders
-unet.h5
-unet.json
-unet_standard.json
-unet_standard.h5
-
-# Misc. Folders
-checkpoint/
+# files
+data.zip

@@ -1,37 +1,79 @@
-import numpy as np
-import math
 import tensorflow as tf
 import tensorlayer as tl
-from model_utilities import DistortImages
+import os, time, traceback
+import numpy as np
 from keras import backend as K
-from keras.utils import Sequence
-from random import shuffle
+from keras.models import Model, model_from_json
 
-class DataGenerator(Sequence):
-
-    def __init__(self, XSet, ySet, batch_size):
-        self.X, self.y = XSet, ySet
-        self.batch_size = batch_size
-        _ , self.nw, self.nh, self.nz = self.X.shape
+def DistortImages(data):
+    '''
+    Function to augment the data with Tensorlayer
+    
+    Arguments:
+        data {tensor} -- The input to do data augmentation
         
-    def __len__(self):
-        return math.ceil(len(self.X) / self.batch_size)
+    Returns:
+        x1, x2, x3, x4, y {tensors} -- The augmented tensors of the data
+    '''
+    
+    # Fetch data
+    x1, x2, x3, x4, y = data
+    
+    # Apply Augmentation
+    x1, x2, x3, x4, y = tl.prepro.flip_axis_multi([x1, x2, x3, x4, y], axis = 1, is_random = True) # Axis = 1 => left right flip
+    x1, x2, x3, x4, y = tl.prepro.elastic_transform_multi([x1, x2, x3, x4, y], alpha = 720, sigma = 24, is_random = True)
+    x1, x2, x3, x4, y = tl.prepro.rotation_multi([x1, x2, x3, x4, y], rg = 20, is_random = True, fill_mode = "constant")
+    x1, x2, x3, x4, y = tl.prepro.shift_multi([x1, x2, x3, x4, y], wrg = 0.10, hrg = 0.10, is_random = True, fill_mode = "constant")
+    x1, x2, x3, x4, y = tl.prepro.shear_multi([x1, x2, x3, x4, y], 0.05, is_random = True, fill_mode = "constant")
+    x1, x2, x3, x4, y = tl.prepro.zoom_multi([x1, x2, x3, x4, y], zoom_range = [0.9, 1.1], is_random = True, fill_mode = "constant")
+    return x1, x2, x3, x4, y
 
-    def __getitem__(self, index):
-        images = self.X[index * self.batch_size : (index + 1) * self.batch_size, :, :, :]
-        labels = self.y[index * self.batch_size : (index + 1) * self.batch_size, :, :, :]
-        data = tl.prepro.threading_data([_ for _ in zip(images[:,:,:,0, np.newaxis],
-                        images[:,:,:,1, np.newaxis], images[:,:,:,2, np.newaxis],
-                        images[:,:,:,3, np.newaxis], labels)], fn = DistortImages)
-        bImages = data[:, 0:4, :, :, :]
-        bLabels = data[:, 4, :, :, :]
-        bImages = bImages.transpose((0, 2, 3, 1, 4))
-        bImages.shape = (self.batch_size, self.nw, self.nh, self.nz)
-        return bImages, bLabels
-
-    def on_epoch_end(self):
+def VisualizeImageWithPrediction(X, y, yPred, path):
+    '''
+    Function to store one slice with prediction
+    This function combines X with y(ground truth) and yPred(prediction) and
+    saves them in path
+    
+    Arguments:
+        X {tensor} -- The X input data with dims (height, width, no_of_X_input(4))
+        y {tensor} -- The ground truth value with dims (height, width)
+        yPred {tensor} -- The ground truth value with dims (height, width)
         
-        indexList = list(range(self.X.shape[0]))
-        shuffle(indexList)
-        self.X = self.X[indexList, :, :, :]
-        self.y = self.y[indexList, :, :, :]
+    Returns:
+        None
+    '''
+    if y.ndim == 2:
+        # Then add a dimension to make it have channels
+        y = y[:, :, np.newaxis] # (height, width, channel = 1)
+    
+    if yPred.ndim == 2:
+        yPred = yPred[:, :, np.newaxis]
+    
+    assert X.ndim == 3 # Check dimensions of X
+    
+    tl.vis.save_images(np.asarray([X[:,:,0,np.newaxis], X[:, :, 1, np.newaxis], X[:, :, 2, np.newaxis], X[:, :, 3, np.newaxis], y, yPred]),
+                                 size = (1, 6),
+                                 image_path = path)
+
+def VisualizeImage(X, y, path):
+    '''
+    Function to store one image slice in given path.
+    This function combines all images of X with y and stores it in
+    path as one image
+    
+    Arguments:
+        X {tensor} -- input data X
+        y {tensor} -- ground truth value y
+        path {str} -- path to save the file
+    
+    Returns:
+        None
+    '''
+    if y.ndim == 2:
+        y = y[:, :, np.newaxis]
+    
+    assert X.ndim == 3 # Make sure the X consist of dim - (height, width, no_of_X_data(4))
+    
+    tl.vis.save_images(np.asarray([X[:, :, 0, np.newaxis], X[:, :, 1, np.newaxis], X[:, :, 2, np.newaxis], X[:, :, 3, np.newaxis], y]),
+                       size = (1, 5), 
+                       image_path = path)
