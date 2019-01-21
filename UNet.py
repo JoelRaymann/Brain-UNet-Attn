@@ -297,7 +297,7 @@ class UNet:
         # Plot and viz
         self.Plot(results = results)
            
-    def Evalualate(self, XTest, yTest):
+    def Evaluate(self, XTest, yTest):
         '''
         Function to evaluate the model with test data
         
