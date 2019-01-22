@@ -18,12 +18,15 @@ class logClass():
 #----------------------------------------------------------------------------------------------------------------------
 
     import logging
+    from logging.handlers import RotatingFileHandler
     
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
     # create a file handler
-    handler = logging.FileHandler('BrainTumour.log')
+    handler = RotatingFileHandler('BrainTumour.log', mode='a', maxBytes=5*1024*1024, 
+    backupCount=2, encoding=None, delay=0)
+
     handler.setLevel(logging.DEBUG)
 
     # create a logging "format time-name-level-message"
@@ -32,6 +35,7 @@ class logClass():
 
     # add the handlers to the logger
     logger.addHandler(handler)
+
 
 '''
 How to use?
