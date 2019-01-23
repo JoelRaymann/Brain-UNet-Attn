@@ -9,11 +9,11 @@ if __name__ == "__main__":
 
     # Assign it
     XTrain = dataset.X_train_input
-    yTrain = dataset.X_train_target
+    yTrain = dataset.X_train_target[:, :, :, np.newaxis]
     XDev = dataset.X_dev_input
-    yDev = dataset.X_dev_target
-    XTest = dataset.X_test_input
-    yTest = dataset.X_test_target
+    yDev = dataset.X_dev_target[:, :, :, np.newaxis]
+    XTest = dataset.X_dev_input
+    yTest = dataset.X_dev_target[:, :, :, np.newaxis]
     print("[INFO] Data Loaded")
 
     # Setup Data
@@ -26,12 +26,12 @@ if __name__ == "__main__":
 
     # Hyperparameter settings
     batch_size = 5
-    lr = 0.0001
-    n_epoch = 10
+    lr = 0.00001
+    n_epoch = 2
 
     # Initialize model
     model = UNet.UNet(shape = (batch_size, nw, nh, nz), dropout = 0.05, batchNorm = True)
-    model.SetHyperParameters(learning_rate = lr, batchSize = batch_size, loss = dice_coef, metrics = [dice_coef, jaccard_distance_loss])
+    model.SetHyperParameters(learning_rate = lr, batchSize = batch_size, loss = dice_coef_loss, metrics = [dice_coef, jaccard_distance_loss])
     model.SetupCallbacks()
     model.CompileModel()
     

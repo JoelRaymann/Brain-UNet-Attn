@@ -15,7 +15,7 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 from error_handling_utilities import ModelFrameError
 from error_handling_utilities import logClass as log
 from DataGenerator import DataGenerator
-from data_utilities import VisualizeImage, VisualizeImageWithPrediction
+from data_utilities import VisualizeImage, VisualizeImageWithPrediction, DistortImages
 from model_utilities import LoadModelJSON, SaveModelJSON
 
 class UNet:
@@ -50,9 +50,9 @@ class UNet:
 
         # Setup folder list
         folderList = ["./checkpoint", 
-        "./sample",
         "./test",
-        "./savedModels"]
+        "./savedModels",
+        "./plots"]
         self.__InitializeFolders__(folderList)
     
     def __InitializeFolders__(self, folderList: list) -> bool:
@@ -93,7 +93,7 @@ class UNet:
             batchNorm {bool} -- status check for batchnorm (default: {False})
         '''
         # First layer
-        x = Conv2D(filters = filters, kernel_size = (kernelSize, kernelSize), kernel_initializer = "he_normal", padding = "same")(input)(inputTensor)
+        x = Conv2D(filters = filters, kernel_size = (kernelSize, kernelSize), kernel_initializer = "he_normal", padding = "same")(inputTensor)
         if batchNorm:
             x = BatchNormalization()(x)
         x = Activation("relu")(x)
@@ -173,7 +173,7 @@ class UNet:
         outputs = Conv2D(filters = n_out, kernel_size = (1, 1), activation = 'sigmoid')(conv9)
         
         # Make model
-        model = Model(inputs = [inputImage], outputs = [outputs])
+        model = Model(inputs = inputImage, outputs = outputs)
 
         return model
 
@@ -278,7 +278,7 @@ class UNet:
         '''
         # Set the data
         trainGen = DataGenerator(XSet = XTrain, ySet = yTrain, batch_size = self.batchSize)
-        if XDev and yDev:
+        if XDev is not None and yDev is not None:
             devGen = DataGenerator(XSet = XDev, ySet = yDev, batch_size = self.batchSize)
         print("[INFO] Training started")
         log.logger.info("[INFO] Training started")
@@ -292,7 +292,8 @@ class UNet:
             shuffle = True,
             validation_data = devGen,
             validation_steps = XDev.shape[0] // self.batchSize,
-            workers = 0)
+            workers = 0
+        )
         log.logger.info("[INFO] Train completed")
         # Plot and viz
         self.Plot(results = results)
@@ -309,18 +310,39 @@ class UNet:
         testGen = DataGenerator(XTest, yTest, self.batchSize)
         self.model.evaluate_generator(
             testGen,
-            steps = self.batchSize,
+            steps = XTest.shape[0] // self.batchSize,
             verbose = 1,
             use_multiprocessing = True,
             workers = 0)
     
-    def Predict(self, XTest, yTest):
+    def Predict(self, XTest, yTest, folderPath = "./test"):
+        '''
+        Function to predict the output and save them in the folder path given
+        
+        Arguments:
+            XTest {numpy array} -- the X numpy array of test data
+            yTest {numpy array} -- the y label numpy array of test data
+        
+        Keyword Arguments:
+            folderPath {str} -- [description] (default: {"./test"})
+        
+        Returns:
+            bool -- status
+        '''
+
+        pred = self.model.predict(XTest)
         for ind, (x, y) in enumerate(zip(XTest, yTest)):
-            pred = self.model.predict(x)
-            VisualizeImageWithPrediction(x, y, pred, path = "./test/test_{}.png".format(ind))
+            VisualizeImageWithPrediction(x, y, pred, path = folderPath + "/test_pred_{}.png".format(ind), )
         return True
 
     def Plot(self, results):
+        '''
+        Function to plot the given results from keras train
+        
+        Arguments:
+            results {History} -- keras History class object
+        '''
+
         plt.figure(figsize = (8, 8))
         plt.title("Learning Curve")
         plt.plot(results.history["loss"], label = "loss")
@@ -328,8 +350,11 @@ class UNet:
         plt.plot(np.argmin(results.history["val_loss"]), np.min(results.history["val_loss"]), marker = "x", color = "r", label = "best model")
         plt.xlabel("Epochs")
         plt.ylabel("log_loss")
-        plt.legend();
-
+        plt.legend()
+        plt.show()
+        plt.savefig("./plots/results.png")
+        plt.clf()
+        
     def SaveModel(self, path = "./savedModels/", modelName = "UNet_Standard"):
         '''
         Function to save the model in the given directory

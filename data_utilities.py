@@ -4,6 +4,7 @@ import os, time, traceback
 import numpy as np
 from keras import backend as K
 from keras.models import Model, model_from_json
+import cv2 as cv
 
 def DistortImages(data):
     '''
@@ -28,7 +29,7 @@ def DistortImages(data):
     x1, x2, x3, x4, y = tl.prepro.zoom_multi([x1, x2, x3, x4, y], zoom_range = [0.9, 1.1], is_random = True, fill_mode = "constant")
     return x1, x2, x3, x4, y
 
-def VisualizeImageWithPrediction(X, y, yPred, path):
+def VisualizeImageWithPrediction(X, y, yPred, path = "test_pred.png", intensity = 1.5):
     '''
     Function to store one slice with prediction
     This function combines X with y(ground truth) and yPred(prediction) and
@@ -38,7 +39,9 @@ def VisualizeImageWithPrediction(X, y, yPred, path):
         X {tensor} -- The X input data with dims (height, width, no_of_X_input(4))
         y {tensor} -- The ground truth value with dims (height, width)
         yPred {tensor} -- The ground truth value with dims (height, width)
-        
+        path {str} -- the path to save the image
+        intensity {float} -- the intensity value to set
+
     Returns:
         None
     '''
@@ -51,11 +54,14 @@ def VisualizeImageWithPrediction(X, y, yPred, path):
     
     assert X.ndim == 3 # Check dimensions of X
     
-    tl.vis.save_images(np.asarray([X[:,:,0,np.newaxis], X[:, :, 1, np.newaxis], X[:, :, 2, np.newaxis], X[:, :, 3, np.newaxis], y, yPred]),
-                                 size = (1, 6),
-                                 image_path = path)
-
-def VisualizeImage(X, y, path):
+    X = (np.copy(X) * 1.5).astype(np.uint8)
+    y = ((np.copy(y) > 0) * 255.).astype(np.uint8)
+    yPred = ((np.copy(yPred) > 0) * 255.).astype(np.uint8)
+    img = np.concatenate((X[:, :, 0, np.newaxis], X[:, :, 1, np.newaxis], X[:, :, 2, np.newaxis], X[:, :, 3, np.newaxis], y, yPred), axis = 1)
+    img = cv.applyColorMap(img, cv.COLORMAP_HOT) 
+    cv.imwrite(path, img)
+    
+def VisualizeImage(X, y, path = "test.png", intensity = 1.5):
     '''
     Function to store one image slice in given path.
     This function combines all images of X with y and stores it in
@@ -64,8 +70,8 @@ def VisualizeImage(X, y, path):
     Arguments:
         X {tensor} -- input data X
         y {tensor} -- ground truth value y
-        path {str} -- path to save the file
-    
+        path {str} -- path to save the file {test.png}
+        intensity {float} -- the value to increase the intensity
     Returns:
         None
     '''
@@ -74,6 +80,8 @@ def VisualizeImage(X, y, path):
     
     assert X.ndim == 3 # Make sure the X consist of dim - (height, width, no_of_X_data(4))
     
-    tl.vis.save_images(np.asarray([X[:, :, 0, np.newaxis], X[:, :, 1, np.newaxis], X[:, :, 2, np.newaxis], X[:, :, 3, np.newaxis], y]),
-                       size = (1, 5), 
-                       image_path = path)
+    X = (np.copy(X) * 1.5).astype(np.uint8)
+    y = ((y > 0) * 255.).astype(np.uint8)
+    img = np.concatenate((X[:, :, 0, np.newaxis], X[:, :, 1, np.newaxis], X[:, :, 2, np.newaxis], X[:, :, 3, np.newaxis], y), axis = 1)
+    img = cv.applyColorMap(img, cv.COLORMAP_HOT) 
+    cv.imwrite(path, img)   

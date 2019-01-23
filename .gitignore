@@ -1,6 +1,17 @@
 # Folders
 data/
 .vscode/
+checkpoint/
+.ipynb_checkpoints/
+__pycache__/
+savedModels/
+test/
+plots/
 
 # files
 data.zip
+BrainTumour.log
+backupDataset.py
+dataset_old.py
+testing.ipynb
+trainUNET.ipynb
